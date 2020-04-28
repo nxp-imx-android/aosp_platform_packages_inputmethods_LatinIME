@@ -24,8 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
-import androidx.annotation.NonNull;
-
 import com.android.inputmethod.compat.InputMethodServiceCompatUtils;
 import com.android.inputmethod.event.Event;
 import com.android.inputmethod.keyboard.KeyboardLayoutSet.KeyboardLayoutSetException;
@@ -90,19 +88,17 @@ public final class KeyboardSwitcher implements KeyboardState.SwitchActions {
                 InputMethodServiceCompatUtils.enableHardwareAcceleration(mLatinIME);
     }
 
-    public void updateKeyboardTheme(@NonNull Context displayContext) {
+    public void updateKeyboardTheme() {
         final boolean themeUpdated = updateKeyboardThemeAndContextThemeWrapper(
-                displayContext, KeyboardTheme.getKeyboardTheme(displayContext /* context */));
+                mLatinIME, KeyboardTheme.getKeyboardTheme(mLatinIME /* context */));
         if (themeUpdated && mKeyboardView != null) {
-            mLatinIME.setInputView(
-                    onCreateInputView(displayContext, mIsHardwareAcceleratedDrawingEnabled));
+            mLatinIME.setInputView(onCreateInputView(mIsHardwareAcceleratedDrawingEnabled));
         }
     }
 
     private boolean updateKeyboardThemeAndContextThemeWrapper(final Context context,
             final KeyboardTheme keyboardTheme) {
-        if (mThemeContext == null || !keyboardTheme.equals(mKeyboardTheme)
-                || !mThemeContext.getResources().equals(context.getResources())) {
+        if (mThemeContext == null || !keyboardTheme.equals(mKeyboardTheme)) {
             mKeyboardTheme = keyboardTheme;
             mThemeContext = new ContextThemeWrapper(context, keyboardTheme.mStyleId);
             KeyboardLayoutSet.onKeyboardThemeChanged();
@@ -458,14 +454,13 @@ public final class KeyboardSwitcher implements KeyboardState.SwitchActions {
         }
     }
 
-    public View onCreateInputView(@NonNull Context displayContext,
-            final boolean isHardwareAcceleratedDrawingEnabled) {
+    public View onCreateInputView(final boolean isHardwareAcceleratedDrawingEnabled) {
         if (mKeyboardView != null) {
             mKeyboardView.closing();
         }
 
         updateKeyboardThemeAndContextThemeWrapper(
-                displayContext, KeyboardTheme.getKeyboardTheme(displayContext /* context */));
+                mLatinIME, KeyboardTheme.getKeyboardTheme(mLatinIME /* context */));
         mCurrentInputView = (InputView)LayoutInflater.from(mThemeContext).inflate(
                 R.layout.input_view, null);
         mMainKeyboardFrame = mCurrentInputView.findViewById(R.id.main_keyboard_frame);
