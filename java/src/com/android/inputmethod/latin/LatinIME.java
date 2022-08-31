@@ -101,7 +101,10 @@ import com.android.inputmethod.latin.utils.StatsUtilsManager;
 import com.android.inputmethod.latin.utils.SubtypeLocaleUtils;
 import com.android.inputmethod.latin.utils.ViewLayoutUtils;
 
+import java.io.BufferedReader;
 import java.io.FileDescriptor;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -1305,8 +1308,45 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         return super.onShowInputRequested(flags, configChange);
     }
 
+    private static String readProperty(String propName) {
+        Process process = null;
+        BufferedReader bufferedReader = null;
+
+        try {
+            process = new ProcessBuilder().command("/system/bin/getprop", propName).redirectErrorStream(true).start();
+            bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line = bufferedReader.readLine();
+            if (line == null){
+                line = "";
+            }
+            Log.i(TAG," read System Property: " + propName + "=" + line);
+            return line;
+        } catch (Exception e) {
+            Log.e(TAG,"Failed to read System Property " + propName,e);
+            return "";
+        } finally {
+            if (bufferedReader != null){
+                try {
+                    bufferedReader.close();
+                } catch (IOException e) {}
+            }
+            if (process != null){
+                process.destroy();
+            }
+        }
+    }
+
     @Override
     public boolean onEvaluateInputViewShown() {
+        String secureIME = readProperty("vendor.imx.secureime");
+        if (secureIME.equals("enabled")) {
+            EditorInfo info = getCurrentInputEditorInfo();
+            if (info.inputType == (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD)) {
+                switchToNextInputMethod(false);
+                return false;
+            }
+        }
+
         if (mIsExecutingStartShowingInputView) {
             return true;
         }
