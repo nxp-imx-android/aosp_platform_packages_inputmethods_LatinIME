@@ -1323,7 +1323,7 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
     @Override
     public boolean onEvaluateInputViewShown() {
-        String secureIME = readProperty("vendor.imx.secureime");
+        String secureIME = readProperty("ro.boot.secureime");
         if (secureIME.equals("enabled")) {
             EditorInfo info = getCurrentInputEditorInfo();
             if (info.inputType == (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD)) {
